@@ -11,7 +11,7 @@ import { isEnvTruthy } from '../../utils/envUtils.js'
 import { hasExactErrorMessage } from '../../utils/errors.js'
 import type { CacheSafeParams } from '../../utils/forkedAgent.js'
 import { logError } from '../../utils/log.js'
-import { tokenCountWithEstimation } from '../../utils/tokens.js'
+import { tokenCountForThresholdChecks, tokenCountWithEstimation } from '../../utils/tokens.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../analytics/growthbook.js'
 import { getMaxOutputTokensForModel } from '../api/claude.js'
 import { notifyCompaction } from '../api/promptCacheBreakDetection.js'
@@ -65,7 +65,7 @@ export type AutoCompactTrackingState = {
   consecutiveFailures?: number
 }
 
-export const AUTOCOMPACT_BUFFER_TOKENS = 13_000
+export const AUTOCOMPACT_BUFFER_TOKENS = 38_000
 export const WARNING_THRESHOLD_BUFFER_TOKENS = 20_000
 export const ERROR_THRESHOLD_BUFFER_TOKENS = 20_000
 export const MANUAL_COMPACT_BUFFER_TOKENS = 3_000
@@ -228,7 +228,9 @@ export async function shouldAutoCompact(
     }
   }
 
-  const tokenCount = tokenCountWithEstimation(messages) - snipTokensFreed
+  // Use tokenCountForThresholdChecks which takes the max of estimation and
+  // rough count to avoid undercounting when synthetic messages are added.
+  const tokenCount = tokenCountForThresholdChecks(messages) - snipTokensFreed
   const threshold = getAutoCompactThreshold(model)
   const effectiveWindow = getEffectiveContextWindowSize(model)
 

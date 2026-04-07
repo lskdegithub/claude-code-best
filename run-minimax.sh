@@ -36,4 +36,4 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${RUN_MINIMAX_MAX_OUTPUT_TOKENS:-2048}"
 export CLAUDE_CODE_AUTO_COMPACT_WINDOW="${RUN_MINIMAX_AUTO_COMPACT_WINDOW:-65535}"
 
 cd "$SCRIPT_DIR"
-exec bun ./dist/cli.js --model "$MODEL_ID" "$@"
+exec bun ./dist/cli.js  --model "$MODEL_ID" "$@"

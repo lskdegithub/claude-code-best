@@ -9,6 +9,52 @@ import { getModelCapability } from './model/modelCapabilities.js'
 // Model context window size (200k tokens for all models right now)
 export const MODEL_CONTEXT_WINDOW_DEFAULT = 200_000
 
+// Third-party provider context windows (OpenAI-compatible APIs, etc.)
+// These are hardcoded because we can't query them from the provider APIs.
+const THIRD_PARTY_CONTEXT_WINDOWS: Record<string, number> = {
+  // MiniMax models
+  'miniMax-M2.5': 65_536,
+  'MiniMax-M2.5': 65_536,
+  'miniMax-M2': 100_000,
+  'MiniMax-M2': 100_000,
+  'miniMax-Max': 100_000,
+  'MiniMax-Max': 100_000,
+  // Grok models
+  'grok-2': 131_072,
+  'grok-2-vision-1212': 131_072,
+  'grok-beta': 131_072,
+  // Other common third-party models
+  'claude-3-5-sonnet-20241022': 200_000,
+  'claude-3-5-sonnet-20240620': 200_000,
+  'claude-3-opus-20240229': 200_000,
+  'claude-3-sonnet-20240229': 200_000,
+  'claude-3-haiku-20240307': 200_000,
+}
+
+/**
+ * Get context window for third-party models (OpenAI-compatible APIs).
+ * Returns undefined if the model is not recognized.
+ */
+function getThirdPartyModelContextWindow(model: string): number | undefined {
+  const lowerModel = model.toLowerCase()
+
+  // Exact match (case-insensitive)
+  for (const [key, contextWindow] of Object.entries(THIRD_PARTY_CONTEXT_WINDOWS)) {
+    if (key.toLowerCase() === lowerModel) {
+      return contextWindow
+    }
+  }
+
+  // Partial match (e.g., "MiniMax-M2.5-xxx" matches "MiniMax-M2.5")
+  for (const [key, contextWindow] of Object.entries(THIRD_PARTY_CONTEXT_WINDOWS)) {
+    if (lowerModel.includes(key.toLowerCase())) {
+      return contextWindow
+    }
+  }
+
+  return undefined
+}
+
 // Maximum output tokens for compact operations
 export const COMPACT_MAX_OUTPUT_TOKENS = 20_000
 
@@ -81,6 +127,13 @@ function resolveBaseContextWindowForModel(
       return antModel.contextWindow
     }
   }
+
+  // Third-party provider model context windows
+  const thirdPartyContextWindow = getThirdPartyModelContextWindow(model)
+  if (thirdPartyContextWindow) {
+    return thirdPartyContextWindow
+  }
+
   return MODEL_CONTEXT_WINDOW_DEFAULT
 }
 
