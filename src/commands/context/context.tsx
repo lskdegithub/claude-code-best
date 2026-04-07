@@ -58,7 +58,7 @@ export async function call(
     terminalWidth,
     context, // Pass full context for system prompt calculation
     undefined, // mainThreadAgentDefinition
-    apiView, // Original messages for API usage extraction
+    messages, // Original messages for API usage extraction
   )
 
   // Render to ANSI string to preserve colors and pass to onDone like local commands do
